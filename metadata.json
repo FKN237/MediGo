@@ -1,0 +1,8 @@
+{
+  "name": "MediGo Cameroon",
+  "description": "AI-powered GPS medicine locator for certified pharmacies in Cameroon. Instantly find essential drugs, check stock levels, and verify authenticity.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
