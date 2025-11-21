@@ -53,11 +53,15 @@ const App: React.FC = () => {
           });
         },
         (error) => {
-          console.error("Location error", error);
+          console.warn("Location access denied or failed, defaulting to Douala.", error.message);
           // Default to Douala coordinates if location fails
           setUserLocation({ lat: 4.0511, lng: 9.7679 });
-        }
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
       );
+    } else {
+      // Geolocation not supported
+      setUserLocation({ lat: 4.0511, lng: 9.7679 });
     }
 
     // Simulate a "Restock Alert" only if in App mode
@@ -95,13 +99,22 @@ const App: React.FC = () => {
     setSelectedMedicationInfo(null);
 
     // 1. Use Gemini to interpret the query
-    const interpretation = await interpretSearchQuery(query);
-    const targetName = interpretation?.medicationName || query;
+    // Fallback to raw query if Gemini fails/no key provided
+    let targetName = query;
+    try {
+        const interpretation = await interpretSearchQuery(query);
+        if (interpretation?.medicationName) {
+            targetName = interpretation.medicationName;
+        }
+    } catch (e) {
+        console.warn("Search interpretation failed, using raw query");
+    }
 
     // 2. Filter Local Database
     let matchedMedication = MEDICATIONS.find(m => 
       m.name.toLowerCase().includes(targetName.toLowerCase()) || 
-      m.category.toLowerCase().includes(targetName.toLowerCase())
+      m.category.toLowerCase().includes(targetName.toLowerCase()) ||
+      m.genericName.toLowerCase().includes(targetName.toLowerCase())
     );
 
     // Try to find a more specific match if dosage is provided
@@ -193,10 +206,10 @@ const App: React.FC = () => {
             <span>Drugs</span>
         </button>
 
-        {/* Floating Scan Button */}
+        {/* Floating Scan Button - Opens Live Verification */}
         <button 
           className="relative -top-8 bg-slate-900 text-white p-4 rounded-2xl shadow-xl shadow-slate-900/40 transition-transform hover:scale-105 active:scale-95 group"
-          onClick={() => document.getElementById('cameraInput')?.click()}
+          onClick={() => setCurrentView('VERIFY_DRUG')}
         >
             <div className="absolute inset-0 bg-primary rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"></div>
             <Camera className="w-7 h-7 relative z-10" />

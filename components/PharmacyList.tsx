@@ -12,9 +12,10 @@ const PharmacyList: React.FC<PharmacyListProps> = ({ results, onSelect }) => {
   
   const openGoogleMaps = (e: React.MouseEvent, p: Pharmacy) => {
     e.stopPropagation();
+    e.preventDefault();
     // Construct Google Maps URL
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   if (results.length === 0) {

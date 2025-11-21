@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Initialize Gemini Client
+// NOTE: For the hackathon demo to work fully with AI features, ensure process.env.API_KEY is set.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export interface InterpretedSearch {
@@ -41,8 +42,14 @@ export const interpretSearchQuery = async (query: string): Promise<InterpretedSe
 
     return JSON.parse(response.text);
   } catch (error) {
-    console.error("Gemini Search Interpretation Error:", error);
-    return null;
+    console.warn("Gemini Search Interpretation unavailable (Check API Key). Falling back to simple search.", error);
+    // Graceful fallback so the app still works reasonably well
+    return {
+        medicationName: query,
+        category: undefined,
+        urgencyLevel: 'LOW',
+        isSymptomDescription: false
+    };
   }
 };
 
@@ -64,7 +71,7 @@ export const getAlternatives = async (medicationName: string): Promise<string[]>
     });
     return JSON.parse(response.text);
   } catch (error) {
-    console.error("Gemini Alternatives Error:", error);
+    console.error("Gemini Alternatives unavailable.", error);
     return [];
   }
 };
@@ -99,7 +106,7 @@ export const analyzePrescriptionImage = async (base64Image: string): Promise<str
     });
     return JSON.parse(response.text);
   } catch (error) {
-    console.error("Gemini Image Analysis Error:", error);
+    console.error("Gemini Image Analysis unavailable.", error);
     return [];
   }
 };
@@ -137,7 +144,8 @@ export const identifyMedicineFromImage = async (base64Image: string): Promise<{d
     });
     return JSON.parse(response.text);
   } catch (error) {
-    console.error("Gemini Verification Error:", error);
+    console.error("Gemini Verification unavailable.", error);
+    // Fail safe
     return { detectedName: 'Unknown', confidence: 'LOW' };
   }
 };
